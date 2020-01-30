@@ -1,0 +1,1 @@
+put model_swm_300-6-10-low.w2v file here
