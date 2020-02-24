@@ -11,7 +11,7 @@ MAX_SEQUENCE_LENGTH = 50
 def create_data_task(train_file, vocab_path, word_index_pkl_path, embedding_matrix_path, emb_path, data_path,
                       labels_path, word_index_path, nlp):
     # WORD_INDEX
-    word_index = get_word_index(vocab_path, nlp)
+    word_index = get_word_index_CSV(vocab_path, nlp)
 
     out = open(word_index_path, "w", encoding='utf-8')
     out.write("word" + "\t" + "index" + "\n")
@@ -198,14 +198,20 @@ def get_preprocessed_labels(path, label_type="subtask_a", label_dict={"OFF": 1})
     return labels
 
 
-def get_word_index(path, nlp):
+def get_word_index_CSV(path, nlp):
     fd = open(path, "r", encoding="utf-8")
-    read = csv.DictReader(fd, dialect="excel-tab")
+
     word_set = set()
     i = 0
-    for row in read:
+
+    for row in csv.reader(fd, quotechar='"', delimiter=',', quoting=csv.QUOTE_ALL, skipinitialspace=True):
+        if not i:
+            i += 1
+            continue
         i += 1
-        tweet_text = clean_tweet(row["tweet"])
+        tweet_text = row[1].replace("\n", " ").replace("\r", " ")
+        tweet_text = re.sub(' +', ' ', tweet_text)
+        tweet_text = clean_tweet(tweet_text)
         tweet_text = replace_tweet(tweet_text)
         doc = nlp(tweet_text)
         for token in doc:

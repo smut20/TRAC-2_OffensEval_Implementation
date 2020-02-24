@@ -155,8 +155,8 @@ if __name__ == '__main__':
     # pre-training pre-processing
     # embedding file
     emb_path = "../data/model/model_swm_300-6-10-low.w2v"
-    vocab_path = "../data/train_and_test_task3.tsv"              #? how to generate this one for new training and test data
-    word_index_path = "../data/word_index_train_test_task3.tsv"  #? same as above
+    vocab_path = "../data/trac2/input/2/trac2_eng_train.csv"   #? how to generate this one for new training and test data
+    word_index_path = "../data/trac2/input/2/word_index_train.csv"  #? same as above
     # generate below ones
     word_index_pkl_path = "../data/output/word_index_train.pkl"
     embedding_matrix_path = "../data/output/embedding_matrix.pkl"
@@ -189,9 +189,9 @@ if __name__ == '__main__':
     data = load_obj(data_path)
 
     # TEST
-    data_path = "../data/output/data_test.pkl"
-    ids_test_path = "../data/output/ids_test.pkl"
-    result_path = "../data/output/task_result.csv"
+    data_path = "../data/trac2/output/data_test.pkl"
+    ids_test_path = "../data/trac2/output/ids_test.pkl"
+    result_path = "../data/trac2/output/task_result.csv"
 
     if CREATE_TEST_DATA:
         if not nlp:
