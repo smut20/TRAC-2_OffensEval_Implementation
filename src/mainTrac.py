@@ -12,12 +12,12 @@ from keras import initializers
 
 from keras.regularizers import L1L2
 from preprocessTrac import create_data_task, create_test_data, prepocess_organizers_dataset
-from utils import load_obj
+from utils import load_obj, plot_model_history
 
 EMBEDDING_DIM = 300
 MAX_SEQUENCE_LENGTH = 50
-BATCH_SIZE = 250
-EPOCHS = 50
+BATCH_SIZE = 350
+EPOCHS = 30
 
 
 def f1(y_true, y_pred):
@@ -144,19 +144,20 @@ if __name__ == '__main__':
     CREATE_TEST_DATA = True
 
     # csv to tsv conversion
-    add_path = "../data/trac2/input/2/trac2_eng_train.csv"
+    raw_training_path = "../data/trac2/input/2/trac2_eng_train.csv"
     train_file = "../data/trac2/output/trac2_train.tsv"
-    prepocess_organizers_dataset(add_path, train_file)
+    prepocess_organizers_dataset(raw_training_path, train_file)
 
-    add_path = "../data/trac2/input/2/trac2_eng_dev.csv"
+    # raw_test_path = "../data/trac2/input/2/trac2_eng_dev.csv"
+    raw_test_path = "../data/trac2/input/1/agr_en_fb_gold.csv"
     testing_path = "../data/trac2/output/trac2_test.tsv"
-    prepocess_organizers_dataset(add_path, testing_path)
+    prepocess_organizers_dataset(raw_test_path, testing_path)
 
     # pre-training pre-processing
     # embedding file
     emb_path = "../data/model/model_swm_300-6-10-low.w2v"
-    vocab_path = "../data/train_and_test_task3.tsv"              #? how to generate this one for new training and test data
-    word_index_path = "../data/word_index_train_test_task3.tsv"  #? same as above
+
+    word_index_path = "../data/output/word_index_train.csv"  #? same as above
     # generate below ones
     word_index_pkl_path = "../data/output/word_index_train.pkl"
     embedding_matrix_path = "../data/output/embedding_matrix.pkl"
@@ -170,13 +171,14 @@ if __name__ == '__main__':
     nlp.add_pipe(emoji, first=True)
     create_data_task(
         train_file,
-        vocab_path,
+        word_index_path,
+        raw_training_path,      # for vocab
+        raw_test_path,          # for vocab
         word_index_pkl_path,
         embedding_matrix_path,
         emb_path,
         data_path,
         labels_path,
-        word_index_path,
         nlp)
 
     print("NLP Loaded")
@@ -189,9 +191,9 @@ if __name__ == '__main__':
     data = load_obj(data_path)
 
     # TEST
-    data_path = "../data/output/data_test.pkl"
-    ids_test_path = "../data/output/ids_test.pkl"
-    result_path = "../data/output/task_result.csv"
+    data_path = "../data/trac2/output/data_test.pkl"
+    ids_test_path = "../data/trac2/output/ids_test.pkl"
+    result_path = "../data/trac2/output/task_result.csv"
 
     if CREATE_TEST_DATA:
         if not nlp:
@@ -222,10 +224,12 @@ if __name__ == '__main__':
     history = model.fit(x_train, y_train,
                         batch_size=BATCH_SIZE,
                         epochs=EPOCHS,
-                        # validation_split=0.15,
+                        validation_split=0.15,
                         callbacks=callbacks_list,
                         shuffle=True,
                         class_weight=class_weight)
+
+    plot_model_history(history)
 
     label_test_dict = {0: "OAG",
                        1: "CAG",

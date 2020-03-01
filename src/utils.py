@@ -19,8 +19,8 @@ def plot_model_history(model_history):
     acc = "acc"
     val_acc = "val_" + acc
 
-    acc = "f1"
-    val_acc = "val_" + acc
+    # acc = "f1"
+    # val_acc = "val_" + acc
 
     fig, axs = plt.subplots(1,2,figsize=(15,5))
     # summarize history for accuracy
@@ -40,3 +40,4 @@ def plot_model_history(model_history):
     axs[1].set_xticks(np.arange(1,len(model_history.history['loss'])+1),len(model_history.history['loss'])/10)
     axs[1].legend(['train', 'val'], loc='best')
     plt.show()
+    plt.savefig('accuracy_graph.png')

@@ -6,12 +6,12 @@ from keras.utils import to_categorical
 
 EMBEDDING_DIM = 300
 MAX_SEQUENCE_LENGTH = 50
+TEXT_COL = 1
 
-
-def create_data_task(train_file, vocab_path, word_index_pkl_path, embedding_matrix_path, emb_path, data_path,
-                      labels_path, word_index_path, nlp):
+def create_data_task(train_file, word_index_path, raw_training_path, raw_test_path, word_index_pkl_path, embedding_matrix_path, emb_path, data_path,
+                     labels_path, nlp):
     # WORD_INDEX
-    word_index = get_word_index(vocab_path, nlp)
+    word_index = get_word_index_CSV(raw_training_path, raw_test_path, nlp)
 
     out = open(word_index_path, "w", encoding='utf-8')
     out.write("word" + "\t" + "index" + "\n")
@@ -52,7 +52,11 @@ def prepocess_organizers_dataset(add_path, add_proc_path):
             textColumn = re.sub(r"http\S+", "URL", textColumn)
             textColumn = re.sub('@[^\s]+', '@USER', textColumn)
 
-            outputText = row['ID'] + "\t" + textColumn + "\t" + row['Sub-task A'] + "\t" + row['Sub-task B'] + "\n"
+            if ('Sub-task B' in row):
+                outputText = row['ID'] + "\t" + textColumn + "\t" + row['Sub-task A'] + "\t" + row['Sub-task B'] + "\n"
+            else:
+                outputText = row['ID'] + "\t" + textColumn + "\t" + row['Sub-task A'] + "\t" + "\n"
+
             out.write(outputText)
 
     print("Preprocessing finished")
@@ -196,6 +200,39 @@ def get_preprocessed_labels(path, label_type="subtask_a", label_dict={"OFF": 1})
         labels.append(label)
 
     return labels
+
+def get_word_index_CSV(raw_training_path, raw_test_path, nlp):
+    word_set = set()
+    i = 0
+    fd, i = process_csv_file(i, nlp, raw_training_path, word_set)
+    fd, i = process_csv_file(i, nlp, raw_test_path, word_set)
+
+    word_index = {}
+    i = 0
+    for tok in word_set:
+        i += 1
+        word_index[tok] = i
+
+    fd.close()
+    return word_index
+
+
+def process_csv_file(i, nlp, path, word_set):
+    fd = open(path, "r", encoding="utf-8")
+    for row in csv.reader(fd, quotechar='"', delimiter=',', quoting=csv.QUOTE_ALL, skipinitialspace=True):
+        if not i:
+            i += 1
+            continue
+        i += 1
+        tweet_text = row[TEXT_COL].replace("\n", " ").replace("\r", " ")
+        tweet_text = re.sub(' +', ' ', tweet_text)
+        tweet_text = clean_tweet(tweet_text)
+        tweet_text = replace_tweet(tweet_text)
+        doc = nlp(tweet_text)
+        for token in doc:
+            word = unreplace_tweet(str(token))
+            word_set.add(word)
+    return fd, i
 
 
 def get_word_index(path, nlp):
